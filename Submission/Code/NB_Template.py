@@ -7,7 +7,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
 
 
-
 class BagOfWords(object):
     """
     Class for implementing Bag of Words
