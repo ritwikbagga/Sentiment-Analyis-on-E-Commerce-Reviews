@@ -17,7 +17,7 @@ class BagOfWords(object):
         Initialize the BagOfWords model
         """
         self.vocabulary_size = vocabulary_size
-        self.vocabulary={}
+        self.vocabulary=[]
 
     def preprocess(self, text):
         """
@@ -49,14 +49,34 @@ class BagOfWords(object):
     def fit(self, X_train):
         """
         Building the vocabulary using X_train
-        """
+        #x_train is already preprocessed?
         #for each review in X_train it is a text then call the preprocess method only first 100
         #to get the split words
         #create a dictionary and for first 100 reviews get the count
         #create a vocab of most frequent 10 words in first 100 samples
+        """
+        vocab = {}
+        x_t = X_train[0:100] #x_t has first 100 texts
+        for text in x_t:
+            split_text = self.preprocess(text) #got the list of words
+            for word in split_text:
+                if word not in vocab:
+                    vocab[word]=1
+                else:
+                    vocab[word]+=1
 
-        
-        
+        #now we have the dictionary , we will sort it by freuency desc
+        sort_Vocab = sorted(vocab.items(), key=lambda x: x[1], reverse=True)
+        cur = 0
+        for w in sort_Vocab:
+            if cur==self.vocabulary_size:
+                break
+            self.vocabulary.append(w[0])
+            cur+=1
+
+        #we now have model vocabulary of size vocab.size
+
+
     def transform(self, X):
         """
 Transform the texts into word count vectors (representation matrix)using the fitted vocabulary
