@@ -85,7 +85,35 @@ For this question, you need to report the total word count of the vocabulary V i
 representation matrix, and the word count of the V in the representation matrix X should be a vector
 of size 10. (hint: sum the representation matrix along the first axis)
         """
-        pass
+        vocab = sorted(self.vocabulary)  #vocab sorted
+        vocab_index = {}
+        for index,value in enumerate(vocab):
+            vocab_index[value]=index
+        rep_matrix=[]
+        vector0 = np.zeros(self.vocabulary_size)  #[0,0,0,0,,,0]
+        X = X.T #now we have text1, text2,text3...text100
+
+        for text in X:
+            words = self.preprocess(text) #list of words in one review text
+            vector = vector0 #vector initially all zeros
+            for word in words:
+                #if word in vocab then increment index of vector[index of word in vocab]
+                if word in vocab:
+                    vector[vocab_index[word]]+=1
+
+
+            rep_matrix.append(vector)
+        # rep_matrix should be shape (100,10)
+        rep_matrix=np.array(rep_matrix)
+        return rep_matrix
+
+
+
+
+
+
+
+
 
 class NaiveBayes(object):
     def __init__(self, beta=1, n_classes=2):
