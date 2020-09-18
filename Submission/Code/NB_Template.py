@@ -17,6 +17,7 @@ class BagOfWords(object):
         Initialize the BagOfWords model
         """
         self.vocabulary_size = vocabulary_size
+        self.vocabulary={}
 
     def preprocess(self, text):
         """
@@ -49,13 +50,20 @@ class BagOfWords(object):
         """
         Building the vocabulary using X_train
         """
-        pass
+        #for each review in X_train it is a text then call the preprocess method only first 100
+        #to get the split words
+        #create a dictionary and for first 100 reviews get the count
+        #create a vocab of most frequent 10 words in first 100 samples
+
         
         
     def transform(self, X):
         """
-        Transform the texts into word count vectors (representation matrix)
-            using the fitted vocabulary
+Transform the texts into word count vectors (representation matrix)using the fitted vocabulary
+then transform the next 100 entries into a 100 by 10 representation matrix X = {X1, X2, ..., X100}.
+For this question, you need to report the total word count of the vocabulary V in the 100 by 10
+representation matrix, and the word count of the V in the representation matrix X should be a vector
+of size 10. (hint: sum the representation matrix along the first axis)
         """
         pass
 
