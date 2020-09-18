@@ -1,9 +1,13 @@
 
 import numpy as np
-matrix = []
-vector = np.zeros((10))
-vector2= np.zeros((10))
-matrix.append(vector2)
-matrix.append(vector2)
-matrix = np.array(matrix)
-print(matrix.shape)
+import pandas as pd
+def load_data():
+    # x_train = pd.read_csv("../../Data/X_train.csv")
+    # x_train = np.array(x_train["Review Text"])
+    y_train = pd.read_csv("../../Data/y_train.csv")["Sentiment"]
+    print(y_train.shape)
+
+
+
+
+load_data()
