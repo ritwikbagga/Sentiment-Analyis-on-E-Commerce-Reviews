@@ -35,8 +35,13 @@ class BagOfWords(object):
         puntuation = ""
         table = str.maketrans('', '', string.punctuation)
         stripped = [w.translate(table) for w in words]
+        final_words = []
+        for word in stripped:    #remove one letter word
+            if len(word)>1:
+                final_words.append(word)
 
-        pass
+        return final_words
+
 
 
 
