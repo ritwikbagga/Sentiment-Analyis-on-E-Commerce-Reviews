@@ -1,7 +1,7 @@
 import re
 import numpy as np
 import pandas as pd
-
+import string
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
@@ -21,7 +21,7 @@ class BagOfWords(object):
     def preprocess(self, text):
         """
         Preprocessing of one Review Text
-            - convert to lowercase
+            - convert to lowercase done
             - remove punctuation
             - empty spaces
             - remove 1-letter words
@@ -29,7 +29,16 @@ class BagOfWords(object):
 
         Return the split words
         """
+        #lower case
+        text = text.lower()
+        words = text.split()
+        puntuation = ""
+        table = str.maketrans('', '', string.punctuation)
+        stripped = [w.translate(table) for w in words]
+
         pass
+
+
 
     def fit(self, X_train):
         """
