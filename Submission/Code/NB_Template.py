@@ -33,12 +33,12 @@ class BagOfWords(object):
         #lower case
         text = text.lower()
         words = text.split()
-        puntuation = ""
         table = str.maketrans('', '', string.punctuation)
         stripped = [w.translate(table) for w in words]
+        to_remove =['and', 'but', 'in', 'is', 'it', 'of', 'the', 'this', 'to', 'with','that', 'for', 'my', 'have', 'as','was' , 'so' ]
         final_words = []
         for word in stripped:    #remove one letter word
-            if len(word)>1:
+            if len(word)>1 and word not in to_remove:
                 final_words.append(word)
 
         return final_words
@@ -105,6 +105,7 @@ of size 10. (hint: sum the representation matrix along the first axis)
             rep_matrix.append(vector)
         # rep_matrix should be shape (100,10)
         rep_matrix=np.array(rep_matrix)
+        print(sorted(self.vocabulary))
         return rep_matrix
 
 
@@ -172,7 +173,7 @@ def load_data(return_numpy=False):
         y_train = np.array(y_train["Sentiment"])
         x_valid = pd.read_csv("../../Data/X_val.csv")
         x_valid = np.array(x_valid["Review Text"])
-        y_valid = pd.read_csv("../../Data/Y_val.csv.csv")
+        y_valid = pd.read_csv("../../Data/Y_val.csv")
         y_valid = np.array(y_valid["Sentiment"])
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
@@ -186,23 +187,25 @@ def load_data(return_numpy=False):
 
 def main():
     # Load in data
-    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
+    #X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
         
     # Fit the Bag of Words model for Q1.1
+    x_train = pd.read_csv("../../Data/X_train.csv")
+    x_train = np.array(x_train["Review Text"])
     bow = BagOfWords(vocabulary_size=10)
-    bow.fit(X_train[:100])
-    representation = bow.transform(X_train[100:200])
+    bow.fit(x_train[:100])
+    representation = bow.transform(x_train[100:200])
     ret = np.sum(representation, axis=0)
-    print(ret.shape)
+    print(ret)
 
     # Load in data
-    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=True)
-
-    # Fit the Naive Bayes model for Q1.3
-    nb = NaiveBayes(beta=1)
-    nb.fit(X_train, y_train)
-    y_pred = nb.predict(X_valid)
-    print(confusion_matrix(y_valid, y_pred))
+    #X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=True)
+    #
+    # # Fit the Naive Bayes model for Q1.3
+    # nb = NaiveBayes(beta=1)
+    # nb.fit(X_train, y_train)
+    # y_pred = nb.predict(X_valid)
+    # print(confusion_matrix(y_valid, y_pred))
 
 
 if __name__ == '__main__':
