@@ -173,11 +173,11 @@ def load_data(return_numpy=False):
         x_valid = pd.read_csv("../../Data/X_val.csv")
         x_valid = np.array(x_valid["Review Text"])
         y_valid = pd.read_csv("../../Data/Y_val.csv.csv")
-        y_valid = np.array(y_train["Sentiment"])
+        y_valid = np.array(y_valid["Sentiment"])
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
 
-        return
+        return x_train , y_train , x_valid , y_valid , x_test
 
 
 
