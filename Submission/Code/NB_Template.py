@@ -192,6 +192,8 @@ def main():
     bow = BagOfWords(vocabulary_size=10)
     bow.fit(X_train[:100])
     representation = bow.transform(X_train[100:200])
+    ret = np.sum(representation, axis=0)
+    print(ret.shape)
 
     # Load in data
     X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=True)
