@@ -35,10 +35,10 @@ class BagOfWords(object):
         words = text.split()
         table = str.maketrans('', '', string.punctuation)
         stripped = [w.translate(table) for w in words]
-        to_remove =['and', 'but', 'in', 'is', 'it', 'of', 'the', 'this', 'to', 'with','that', 'for', 'my', 'have', 'as','was' , 'so' ]
+        #to_remove =['and', 'but', 'in', 'is', 'it', 'of', 'the', 'this', 'to', 'with','that', 'for', 'my', 'have', 'as','was' , 'so' ]
         final_words = []
-        for word in stripped:    #remove one letter word
-            if len(word)>1 and word not in to_remove:
+        for word in stripped:
+            if len(word)>1: #remove one letter word
                 final_words.append(word)
 
         return final_words
@@ -56,7 +56,7 @@ class BagOfWords(object):
         #create a vocab of most frequent 10 words in first 100 samples
         """
         vocab = {}
-        x_t = X_train[0:100] #x_t has first 100 texts
+        x_t = X_train
         for text in x_t:
             split_text = self.preprocess(text) #got the list of words
             for word in split_text:
@@ -80,19 +80,16 @@ class BagOfWords(object):
     def transform(self, X):
         """
 Transform the texts into word count vectors (representation matrix)using the fitted vocabulary
-then transform the next 100 entries into a 100 by 10 representation matrix X = {X1, X2, ..., X100}.
-For this question, you need to report the total word count of the vocabulary V in the 100 by 10
-representation matrix, and the word count of the V in the representation matrix X should be a vector
-of size 10. (hint: sum the representation matrix along the first axis)
+
         """
         vocab = sorted(self.vocabulary)  #vocab sorted
         vocab_index = {}
         for index,value in enumerate(vocab):
             vocab_index[value]=index
+        #all good till here
         rep_matrix=[]
         vector0 = np.zeros(self.vocabulary_size)  #[0,0,0,0,,,0]
-        X = X.T #now we have text1, text2,text3...text100
-
+        # print(X.shape)
         for text in X:
             words = self.preprocess(text) #list of words in one review text
             vector = vector0 #vector initially all zeros
@@ -100,8 +97,6 @@ of size 10. (hint: sum the representation matrix along the first axis)
                 #if word in vocab then increment index of vector[index of word in vocab]
                 if word in vocab:
                     vector[vocab_index[word]]+=1
-
-
             rep_matrix.append(vector)
         # rep_matrix should be shape (100,10)
         rep_matrix=np.array(rep_matrix)
@@ -169,16 +164,24 @@ def load_data(return_numpy=False):
     if not return_numpy:
         x_train = pd.read_csv("../../Data/X_train.csv")
         x_train = np.array(x_train["Review Text"])
+
         y_train = pd.read_csv("../../Data/y_train.csv")
+        y_train.loc[y_train["Sentiment"]=='Positive',"Sentiment"]=1
+        y_train.loc[y_train["Sentiment"] == 'Negative', "Sentiment"] = 0
         y_train = np.array(y_train["Sentiment"])
+
         x_valid = pd.read_csv("../../Data/X_val.csv")
         x_valid = np.array(x_valid["Review Text"])
+
         y_valid = pd.read_csv("../../Data/Y_val.csv")
+        y_valid.loc[y_valid["Sentiment"]=='Positive',"Sentiment"]==1
+        y_valid.loc[y_valid["Sentiment"] == 'Negative', "Sentiment"] == 0
         y_valid = np.array(y_valid["Sentiment"])
+
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
 
-        return x_train , y_train , x_valid , y_valid , x_test
+    return x_train , y_train , x_valid , y_valid , x_test
 
 
 
@@ -187,14 +190,11 @@ def load_data(return_numpy=False):
 
 def main():
     # Load in data
-    #X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
-        
+    x_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
     # Fit the Bag of Words model for Q1.1
-    x_train = pd.read_csv("../../Data/X_train.csv")
-    x_train = np.array(x_train["Review Text"])
     bow = BagOfWords(vocabulary_size=10)
     bow.fit(x_train[:100])
-    representation = bow.transform(x_train[100:200])
+    representation = bow.transform(x_train[101:201])
     ret = np.sum(representation, axis=0)
     print(ret)
 
