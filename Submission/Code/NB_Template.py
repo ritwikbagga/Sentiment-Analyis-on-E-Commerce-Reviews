@@ -119,6 +119,7 @@ class NaiveBayes(object):
         """
         self.beta = beta
         self.n_classes = n_classes
+        self.priors = {}
 
     def fit(self, X_train, y_train):
         """
@@ -126,7 +127,21 @@ class NaiveBayes(object):
             - build the conditional probabilities
             - and the prior probabilities
         """
-        pass
+
+        for index, label in enumerate(y_train):
+            if label not in self.priors:
+                self.priors[label]=1
+            else:
+                self.priors[label]+=1
+        #now we have count of total number of each label in prior we have to divide by |y_train|
+        for label in np.unique(y_train):
+            self.priors[label] = self.priors[label]/len(y_train)
+
+
+
+
+
+
 
     def predict(self, X_test):
         """
@@ -161,23 +176,20 @@ def load_data(return_numpy=False):
     y_valid
     X_test
     """
+    y_train = pd.read_csv("../../Data/y_train.csv")
+    y_train.loc[y_train["Sentiment"] == 'Positive', "Sentiment"] = 1
+    y_train.loc[y_train["Sentiment"] == 'Negative', "Sentiment"] = 0
+    y_train = np.array(y_train["Sentiment"])
+
+    y_valid = pd.read_csv("../../Data/Y_val.csv")
+    y_valid.loc[y_valid["Sentiment"] == 'Positive', "Sentiment"] == 1
+    y_valid.loc[y_valid["Sentiment"] == 'Negative', "Sentiment"] == 0
+    y_valid = np.array(y_valid["Sentiment"])
     if not return_numpy:
         x_train = pd.read_csv("../../Data/X_train.csv")
         x_train = np.array(x_train["Review Text"])
-
-        y_train = pd.read_csv("../../Data/y_train.csv")
-        y_train.loc[y_train["Sentiment"]=='Positive',"Sentiment"]=1
-        y_train.loc[y_train["Sentiment"] == 'Negative', "Sentiment"] = 0
-        y_train = np.array(y_train["Sentiment"])
-
         x_valid = pd.read_csv("../../Data/X_val.csv")
         x_valid = np.array(x_valid["Review Text"])
-
-        y_valid = pd.read_csv("../../Data/Y_val.csv")
-        y_valid.loc[y_valid["Sentiment"]=='Positive',"Sentiment"]==1
-        y_valid.loc[y_valid["Sentiment"] == 'Negative', "Sentiment"] == 0
-        y_valid = np.array(y_valid["Sentiment"])
-
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
 
