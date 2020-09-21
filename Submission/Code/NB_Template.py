@@ -120,15 +120,22 @@ class NaiveBayes(object):
         self.beta = beta
         self.n_classes = n_classes
         self.priors = {}
-        self.conditional = {}
+        self.vocab_dic = {}
+        self.conditionals = {}
 
-    def fit(self, X_train, y_train):
+
+    def fit(self, X_train, y_train, vocab):
         """
         Fit the model to X_train, y_train
             - build the conditional probabilities
             - and the prior probabilities
+            conditionals you have to
+iterate through each class
+for each word in vocab
+ store in dict[<class>][word] =
+ (# occurrences of word in <class> reviews) / (total # of words in <class> reviews)
         """
-
+        self.vocab_dic= vocab
         for index, label in enumerate(y_train):
             if label not in self.priors:
                 self.priors[label]=1
@@ -136,17 +143,19 @@ class NaiveBayes(object):
                 self.priors[label]+=1
         #now we have count of total number of each label in prior we have to divide by |y_train|
         for label in np.unique(y_train):
-            self.priors[label] = self.priors[label]/len(y_train)  #priors are done
+            self.priors[label] = (self.priors[label]+(self.beta-1))/(len(y_train)+(self.beta-1)*len(np.unique(y_train))) #priors are done
+
+        for label in np.unique(y_train):
+            for word in vocab:
+                self.conditionals[word][label] =
 
         #lets build the conditionals
-        positive_indices = np.argwhere(y_train == 1)
-        Negative_indices = np.argwhere(y_train == 0)
-        positives_in_X = X_train[positive_indices]
-        negatives_in_X = X_train[Negative_indices]
-
-
-
-
+        positive_indices = np.where(y_train == 1)[0]
+        Negative_indices = np.where(y_train == 0)[0]
+        X_train_positives = X_train[positive_indices]
+        X_train_negatives = X_train[Negative_indices]
+        X_train_positives_conditionals = np.sum(X_train_positives,axis=0)
+        X_train_negative_conditionals = np.sum(X_train_negatives, axis=0)
 
 
 
@@ -208,9 +217,9 @@ def load_data(return_numpy=False):
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
         vectorizer.fit(x_train)
-
         x_train = vectorizer.transform(x_train)
         x_train.toarray()
+
         x_valid = vectorizer.transform(x_valid)
         x_valid.toarray()
         x_test = vectorizer.transform(x_test)
