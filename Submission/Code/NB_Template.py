@@ -86,22 +86,22 @@ Transform the texts into word count vectors (representation matrix)using the fit
         vocab_index = {}
         for index,value in enumerate(vocab):
             vocab_index[value]=index
-        #all good till here
-        rep_matrix=[]
-        vector0 = np.zeros(self.vocabulary_size)  #[0,0,0,0,,,0]
-        # print(X.shape)
+        vector0 = np.zeros(self.vocabulary_size)  # [0,0,0,0,,,0]
+        rep_matrix= []
+
         for text in X:
             words = self.preprocess(text) #list of words in one review text
-            vector = vector0 #vector initially all zeros
+            vector = np.zeros(self.vocabulary_size) #vector initially all zeros
             for word in words:
                 #if word in vocab then increment index of vector[index of word in vocab]
                 if word in vocab:
                     vector[vocab_index[word]]+=1
             rep_matrix.append(vector)
+
         # rep_matrix should be shape (100,10)
-        rep_matrix=np.array(rep_matrix)
+        matrix = np.array(rep_matrix)
         print(sorted(self.vocabulary))
-        return rep_matrix
+        return matrix
 
 
 class NaiveBayes(object):
@@ -137,18 +137,18 @@ for each word in vocab
         #now we have count of total number of each label in prior we have to divide by |y_train|
         for label in np.unique(y_train):
             self.priors[label] = (self.priors[label]+(self.beta-1))/(len(y_train)+(self.beta-1)*len(np.unique(y_train))) #priors are done
-
-        for label in np.unique(y_train):
-            for word in vocab:
-                self.conditionals[word][label] =
-
-        #lets build the conditionals
-        positive_indices = np.where(y_train == 1)[0]
-        Negative_indices = np.where(y_train == 0)[0]
-        X_train_positives = X_train[positive_indices]
-        X_train_negatives = X_train[Negative_indices]
-        X_train_positives_conditionals = np.sum(X_train_positives,axis=0)
-        X_train_negative_conditionals = np.sum(X_train_negatives, axis=0)
+        #
+        # for label in np.unique(y_train):
+        #     for word in vocab:
+        #         self.conditionals[word][label] =
+        #
+        # #lets build the conditionals
+        # positive_indices = np.where(y_train == 1)[0]
+        # Negative_indices = np.where(y_train == 0)[0]
+        # X_train_positives = X_train[positive_indices]
+        # X_train_negatives = X_train[Negative_indices]
+        # X_train_positives_conditionals = np.sum(X_train_positives,axis=0)
+        # X_train_negative_conditionals = np.sum(X_train_negatives, axis=0)
 
 
 
@@ -239,16 +239,19 @@ def main():
     bow.fit(X_train[:100])
     representation = bow.transform(X_train[101:201])
     ret = np.sum(representation, axis=0)
+    # print(representation.shape)
+    # print("this is matrix[0] "+str(representation[0]))
+    # print("this is matrix[1] " + str(representation[1]))
     print(ret)
 
     # Load in data
-    X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
-
-    # Fit the Naive Bayes model for Q1.3
-    nb = NaiveBayes(beta=1)
-    nb.fit(X_train, y_train,vocab)
-    y_pred = nb.predict(X_valid)
-    print(confusion_matrix(y_valid, y_pred))
+    # X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
+    #
+    # # Fit the Naive Bayes model for Q1.3
+    # nb = NaiveBayes(beta=1)
+    # nb.fit(X_train, y_train,vocab)
+    # y_pred = nb.predict(X_valid)
+    # print(confusion_matrix(y_valid, y_pred))
 
 
 if __name__ == '__main__':
