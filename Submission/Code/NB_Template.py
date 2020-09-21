@@ -192,6 +192,24 @@ def load_data(return_numpy=False):
         x_valid = np.array(x_valid["Review Text"])
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
+    else:
+        vectorizer = CountVectorizer()
+        x_train = pd.read_csv("../../Data/X_train.csv")
+        x_train = np.array(x_train["Review Text"])
+        x_valid = pd.read_csv("../../Data/X_val.csv")
+        x_valid = np.array(x_valid["Review Text"])
+        x_test = pd.read_csv("../../Data/X_test.csv")
+        x_test = np.array(x_test["Review Text"])
+        vocab = vectorizer.fit(x_train)
+
+        x_train = vectorizer.transform(vocab)
+        x_train.toarray()
+        x_valid = vectorizer.transform(vocab)
+
+
+
+
+
 
     return x_train , y_train , x_valid , y_valid , x_test
 
