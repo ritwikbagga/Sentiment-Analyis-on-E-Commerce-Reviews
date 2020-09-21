@@ -120,6 +120,7 @@ class NaiveBayes(object):
         self.beta = beta
         self.n_classes = n_classes
         self.priors = {}
+        self.conditional = {}
 
     def fit(self, X_train, y_train):
         """
@@ -135,7 +136,13 @@ class NaiveBayes(object):
                 self.priors[label]+=1
         #now we have count of total number of each label in prior we have to divide by |y_train|
         for label in np.unique(y_train):
-            self.priors[label] = self.priors[label]/len(y_train)
+            self.priors[label] = self.priors[label]/len(y_train)  #priors are done
+
+        #lets build the conditionals
+        positive_indices = np.argwhere(y_train == 1)
+        Negative_indices = np.argwhere(y_train == 0)
+        positives_in_X = X_train[positive_indices]
+        negatives_in_X = X_train[Negative_indices]
 
 
 
@@ -203,8 +210,11 @@ def load_data(return_numpy=False):
         vectorizer.fit(x_train)
 
         x_train = vectorizer.transform(x_train)
+        x_train.toarray()
         x_valid = vectorizer.transform(x_valid)
+        x_valid.toarray()
         x_test = vectorizer.transform(x_test)
+        x_test.toarray()
 
     return x_train , y_train , x_valid , y_valid , x_test
 
