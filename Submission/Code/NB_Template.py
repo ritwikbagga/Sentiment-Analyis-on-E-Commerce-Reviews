@@ -104,13 +104,6 @@ Transform the texts into word count vectors (representation matrix)using the fit
         return rep_matrix
 
 
-
-
-
-
-
-
-
 class NaiveBayes(object):
     def __init__(self, beta=1, n_classes=2):
         """
@@ -208,24 +201,30 @@ def load_data(return_numpy=False):
         x_valid = np.array(x_valid["Review Text"])
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
-    else:
-        vectorizer = CountVectorizer()
-        x_train = pd.read_csv("../../Data/X_train.csv")
-        x_train = np.array(x_train["Review Text"])
-        x_valid = pd.read_csv("../../Data/X_val.csv")
-        x_valid = np.array(x_valid["Review Text"])
-        x_test = pd.read_csv("../../Data/X_test.csv")
-        x_test = np.array(x_test["Review Text"])
-        vectorizer.fit(x_train)
-        x_train = vectorizer.transform(x_train)
-        x_train.toarray()
+        return x_train, y_train, x_valid, y_valid, x_test
 
-        x_valid = vectorizer.transform(x_valid)
-        x_valid.toarray()
-        x_test = vectorizer.transform(x_test)
-        x_test.toarray()
+    vectorizer = CountVectorizer()
+    x_train = pd.read_csv("../../Data/X_train.csv")
+    x_train = np.array(x_train["Review Text"])
+    x_valid = pd.read_csv("../../Data/X_val.csv")
+    x_valid = np.array(x_valid["Review Text"])
+    x_test = pd.read_csv("../../Data/X_test.csv")
+    x_test = np.array(x_test["Review Text"])
+    vectorizer.fit(x_train)
+    x_train = vectorizer.transform(x_train)
+    x_train.toarray()
+    vocab = {}
+    v = vectorizer.get_feature_names()
+    for index, value in enumerate(v):
+        vocab[value] = index
+    x_valid = vectorizer.transform(x_valid)
+    x_valid.toarray()
+    x_test = vectorizer.transform(x_test)
+    x_test.toarray()
+    return x_train, y_train, x_valid, y_valid, x_test , vocab
 
-    return x_train , y_train , x_valid , y_valid , x_test
+
+
 
 
 
@@ -243,11 +242,11 @@ def main():
     print(ret)
 
     # Load in data
-    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=True)
+    X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
 
     # Fit the Naive Bayes model for Q1.3
     nb = NaiveBayes(beta=1)
-    nb.fit(X_train, y_train)
+    nb.fit(X_train, y_train,vocab)
     y_pred = nb.predict(X_valid)
     print(confusion_matrix(y_valid, y_pred))
 
