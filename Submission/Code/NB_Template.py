@@ -200,16 +200,11 @@ def load_data(return_numpy=False):
         x_valid = np.array(x_valid["Review Text"])
         x_test = pd.read_csv("../../Data/X_test.csv")
         x_test = np.array(x_test["Review Text"])
-        vocab = vectorizer.fit(x_train)
+        vectorizer.fit(x_train)
 
-        x_train = vectorizer.transform(vocab)
-        x_train.toarray()
-        x_valid = vectorizer.transform(vocab)
-
-
-
-
-
+        x_train = vectorizer.transform(x_train)
+        x_valid = vectorizer.transform(x_valid)
+        x_test = vectorizer.transform(x_test)
 
     return x_train , y_train , x_valid , y_valid , x_test
 
@@ -220,22 +215,22 @@ def load_data(return_numpy=False):
 
 def main():
     # Load in data
-    x_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
+    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
     # Fit the Bag of Words model for Q1.1
     bow = BagOfWords(vocabulary_size=10)
-    bow.fit(x_train[:100])
-    representation = bow.transform(x_train[101:201])
+    bow.fit(X_train[:100])
+    representation = bow.transform(X_train[101:201])
     ret = np.sum(representation, axis=0)
     print(ret)
 
     # Load in data
-    #X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=True)
-    #
-    # # Fit the Naive Bayes model for Q1.3
-    # nb = NaiveBayes(beta=1)
-    # nb.fit(X_train, y_train)
-    # y_pred = nb.predict(X_valid)
-    # print(confusion_matrix(y_valid, y_pred))
+    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=True)
+
+    # Fit the Naive Bayes model for Q1.3
+    nb = NaiveBayes(beta=1)
+    nb.fit(X_train, y_train)
+    y_pred = nb.predict(X_valid)
+    print(confusion_matrix(y_valid, y_pred))
 
 
 if __name__ == '__main__':
