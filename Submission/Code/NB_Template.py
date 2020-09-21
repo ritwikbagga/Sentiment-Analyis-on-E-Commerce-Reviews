@@ -86,7 +86,7 @@ Transform the texts into word count vectors (representation matrix)using the fit
         vocab_index = {}
         for index,value in enumerate(vocab):
             vocab_index[value]=index
-        vector0 = np.zeros(self.vocabulary_size)  # [0,0,0,0,,,0]
+        # vector0 = np.zeros(self.vocabulary_size)  # [0,0,0,0,,,0]
         rep_matrix= []
 
         for text in X:
@@ -114,19 +114,12 @@ class NaiveBayes(object):
         self.n_classes = n_classes
         self.priors = {}
         self.vocab_dic = {}
-        self.conditionals = {}
+        self.conditionals = {} #[word][label]=
 
 
     def fit(self, X_train, y_train, vocab):
         """
-        Fit the model to X_train, y_train
-            - build the conditional probabilities
-            - and the prior probabilities
-            conditionals you have to
-iterate through each class
-for each word in vocab
- store in dict[<class>][word] =
- (# occurrences of word in <class> reviews) / (total # of words in <class> reviews)
+
         """
         self.vocab_dic= vocab
         for index, label in enumerate(y_train):
@@ -137,18 +130,23 @@ for each word in vocab
         #now we have count of total number of each label in prior we have to divide by |y_train|
         for label in np.unique(y_train):
             self.priors[label] = (self.priors[label]+(self.beta-1))/(len(y_train)+(self.beta-1)*len(np.unique(y_train))) #priors are done
-        #
-        # for label in np.unique(y_train):
-        #     for word in vocab:
-        #         self.conditionals[word][label] =
-        #
-        # #lets build the conditionals
-        # positive_indices = np.where(y_train == 1)[0]
-        # Negative_indices = np.where(y_train == 0)[0]
-        # X_train_positives = X_train[positive_indices]
-        # X_train_negatives = X_train[Negative_indices]
-        # X_train_positives_conditionals = np.sum(X_train_positives,axis=0)
-        # X_train_negative_conditionals = np.sum(X_train_negatives, axis=0)
+
+
+        #lets build the conditionals
+        #conditionals = {}  # dictionary conditinals[word_index][label] = P(word|label)
+        positive_indices = np.where(y_train == 1)[0]
+        Negative_indices = np.where(y_train == 0)[0]
+        X_train_positives = X_train[positive_indices] #samples of label positives
+        X_train_negatives = X_train[Negative_indices] #sample of label negative
+        X_train_positive_counts = np.sum(X_train_positives,axis=0) #count of word label = pos
+        X_train_negative_counts = np.sum(X_train_negatives, axis=0) #count of word label =neg
+
+        for index_word, value in enumerate(vocab):
+                self.conditionals[index_word][1] = (X_train_positive_counts[index_word] + (self.beta -1))   / np.sum(X_train_positive_counts) + (self.beta-1)*len(np.unique(y_train))
+                self.conditionals[index_word][0] = (X_train_negative_counts[index_word] + (self.beta - 1))  / np.sum(X_train_negative_counts) + (self.beta-1)*len(np.unique(y_train))
+
+
+
 
 
 
@@ -156,6 +154,15 @@ for each word in vocab
         """
         Predict the X_test with the fitted model
         """
+
+
+
+
+
+
+
+
+
         pass
 
 
@@ -237,11 +244,8 @@ def main():
     # Fit the Bag of Words model for Q1.1
     bow = BagOfWords(vocabulary_size=10)
     bow.fit(X_train[:100])
-    representation = bow.transform(X_train[101:201])
+    representation = bow.transform(X_train[10:200])
     ret = np.sum(representation, axis=0)
-    # print(representation.shape)
-    # print("this is matrix[0] "+str(representation[0]))
-    # print("this is matrix[1] " + str(representation[1]))
     print(ret)
 
     # Load in data
