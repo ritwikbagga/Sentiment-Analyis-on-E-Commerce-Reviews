@@ -150,10 +150,28 @@ class NaiveBayes(object):
 
 
 
+
+
     def predict(self, X_test):
         """
         Predict the X_test with the fitted model
         """
+        y_pred = []
+        for x in X_test:
+            positive_prob = self.priors[1]
+            negative_prob = self.priors[0]
+            for word_index, word in enumerate(x):
+                positive_prob *= (self.conditionals[word_index][1])**word # "**word" because that is frequency
+                negative_prob *= (self.conditionals[word_index][0])**word # "**word" because that is frequency
+
+            if positive_prob>negative_prob:
+                y_pred.append([0])
+            else:
+                y_pred.append([1])
+
+        return y_pred
+
+
 
 
 
