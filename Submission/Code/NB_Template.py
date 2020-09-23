@@ -1,10 +1,11 @@
 import re
+import math
 import numpy as np
 import pandas as pd
 import string
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score , accuracy_score
 from matplotlib import pyplot as plt
 
 class BagOfWords(object):
@@ -131,7 +132,7 @@ class NaiveBayes(object):
                 self.priors[label]+=1
         #now we have count of total number of each label in prior we have to divide by |y_train|
         for label in np.unique(y_train):
-            self.priors[label] = (self.priors[label]+(self.beta-1))/(len(y_train)+(self.beta-1)*len(np.unique(y_train))) #priors are done
+            self.priors[label] = (self.priors[label]+(self.beta-1))/(len(y_train)+ (self.beta-1)*len(np.unique(y_train))) #priors are done
 
         print("priors are done")
 
@@ -165,21 +166,24 @@ class NaiveBayes(object):
         """
         print("predicting now")
         y_pred = []
+        y_prob = []
         for x in X_test:
-            positive_prob = self.priors[1]
-            negative_prob = self.priors[0]
+            positive_prob = math.log(self.priors[1])
+            negative_prob = math.log(self.priors[0])
             for word_index, word in enumerate(x):
-                positive_prob *= (self.conditionals_p[word_index])**word # "**word" because that is frequency
-                negative_prob *= (self.conditionals_n[word_index])**word # "**word" because that is frequency
+                positive_prob +=math.log( (self.conditionals_p[word_index])**word )  # "**word" because that is frequency
+                negative_prob += math.log( (self.conditionals_n[word_index])**word ) # "**word" because that is frequency
 
-            # if positive_prob>negative_prob:
-            #     y_pred.append(1)
-            # else:
-            #     y_pred.append(0)
-            y_pred.append(positive_prob) # probability of 1
+            if positive_prob>negative_prob:
+                y_pred.append(int(1))
+            else:
+                y_pred.append(int(0))
+
+            y_prob.append(negative_prob/(negative_prob+positive_prob)) # probability of 1
 
         y_pred=np.array(y_pred)
-        return y_pred
+        y_prob= np.array(y_prob)
+        return y_pred , y_prob
 
 
 
@@ -210,12 +214,12 @@ def load_data(return_numpy=False):
     X_test
     """
     y_train = pd.read_csv("../../Data/y_train.csv")
-    y_train.loc[y_train["Sentiment"] == 'Positive', "Sentiment"] = 1
-    y_train.loc[y_train["Sentiment"] == 'Negative', "Sentiment"] = 0
+    y_train.loc[y_train["Sentiment"] == 'Positive', "Sentiment"] = int(1)
+    y_train.loc[y_train["Sentiment"] == 'Negative', "Sentiment"] = int(0)
     y_train = np.array(y_train["Sentiment"])
     y_valid = pd.read_csv("../../Data/Y_val.csv")
-    y_valid.loc[y_valid["Sentiment"] == 'Positive', "Sentiment"] == 1
-    y_valid.loc[y_valid["Sentiment"] == 'Negative', "Sentiment"] == 0
+    y_valid.loc[y_valid["Sentiment"] == 'Positive', "Sentiment"] = int(1)
+    y_valid.loc[y_valid["Sentiment"] == 'Negative', "Sentiment"] = int(0)
     y_valid = np.array(y_valid["Sentiment"])
     if not return_numpy:
         x_train = pd.read_csv("../../Data/X_train.csv")
@@ -254,14 +258,14 @@ def load_data(return_numpy=False):
 
 def main():
     # Load in data
-    print("########## BAG of Words ##########")
-    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
-    # Fit the Bag of Words model for Q1.1
-    bow = BagOfWords(vocabulary_size=10)
-    bow.fit(X_train[:100])
-    representation = bow.transform(X_train[100:200])
-    ret = np.sum(representation, axis=0)
-    print(ret)
+    # print("########## BAG of Words ##########")
+    # X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
+    # # Fit the Bag of Words model for Q1.1
+    # bow = BagOfWords(vocabulary_size=10)
+    # bow.fit(X_train[:100])
+    # representation = bow.transform(X_train[100:200])
+    # ret = np.sum(representation, axis=0)
+    # print(ret)
 
 
     print("########## Naive Bayes model N##########")
@@ -269,23 +273,31 @@ def main():
     X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
 
     # Fit the Naive Bayes model for Q1.3
-    beta_list = [1,1.2,1.4,1.6]
+    beta_list = [1.2]
     ROC_list = []
     for beta in beta_list:
 
         nb = NaiveBayes(beta)
         nb.fit(X_train, y_train,vocab)
-        y_pred = nb.predict(X_valid)
-        score = roc_auc_score(y_valid, y_pred)
-        ROC_list.append(score)
-        print("FINAL ROC AUC SCORE= " + str(score) + "FOR Beta = " + str(beta))
+        y_pred, y_prob = nb.predict(X_valid)
+        print(y_prob[:5])
+        print("neeeee")
+        print(y_valid[:5])
+        #
+        # f1 = f1_score(y_valid, y_pred)
+        # accuracy = accuracy_score(y_valid,y_pred)
+        # ROC_AUC_score = roc_auc_score(y_valid, y_prob)
+        # ROC_list.append(ROC_AUC_score)
+        # print("FINAL ROC AUC SCORE= " + str(ROC_AUC_score) + "FOR Beta = " + str(beta))
+        # print("FINAL F1 SCORE= " + str(f1) + "FOR Beta = " + str(beta))
+        # print("Accuracy= " + str(accuracy) + "FOR Beta = " + str(beta))
     # print(confusion_matrix(y_valid, y_pred))
 
-    plt.figure("ROC FOR DIFFERENT VALUES OF D")
-    plt.plot(beta_list, ROC_list)
-    plt.xlabel("Value of beta")
-    plt.ylabel("ROC score")
-    plt.show()
+    # plt.figure("ROC FOR DIFFERENT VALUES OF D")
+    # plt.plot(beta_list, ROC_list)
+    # plt.xlabel("Value of beta")
+    # plt.ylabel("ROC score")
+    # plt.show()
 
 if __name__ == '__main__':
     main()
