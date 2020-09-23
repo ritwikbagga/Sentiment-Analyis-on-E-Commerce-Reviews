@@ -5,7 +5,7 @@ import string
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
-
+from matplotlib import pyplot as plt
 
 class BagOfWords(object):
     """
@@ -134,8 +134,8 @@ class NaiveBayes(object):
             self.priors[label] = (self.priors[label]+(self.beta-1))/(len(y_train)+(self.beta-1)*len(np.unique(y_train))) #priors are done
 
         print("priors are done")
-        #lets build the conditionals
 
+        #lets build the conditionals
         positive_indices =  np.where(y_train==1)[0]
         Negative_indices = np.where(y_train == 0)[0]
 
@@ -143,12 +143,12 @@ class NaiveBayes(object):
         X_train_negatives = X_train[Negative_indices] #sample of label negative
 
         X_train_positive_counts = np.sum(X_train_positives,axis=0 ) #count of word label = pos
-        #print("X_train_positive_counts="+str(X_train_positive_counts))
+
         X_train_negative_counts = np.sum(X_train_negatives, axis=0) #count of word label =neg
 
         for index_word, value in enumerate(vocab):
-                 self.conditionals_p[index_word] = (X_train_positive_counts[index_word] + (self.beta -1))   / ( np.sum(X_train_positive_counts) + (self.beta-1)*len(np.unique(y_train)) )
-                 self.conditionals_n[index_word] = (X_train_negative_counts[index_word] + (self.beta - 1))  / ( np.sum(X_train_negative_counts) + (self.beta-1)*len(np.unique(y_train)) )
+                 self.conditionals_p[index_word] = (X_train_positive_counts[index_word] + (self.beta -1))   / ( np.sum(X_train_positive_counts) + (self.beta-1)*2 )
+                 self.conditionals_n[index_word] = (X_train_negative_counts[index_word] + (self.beta - 1))  / ( np.sum(X_train_negative_counts) + (self.beta-1)*2 )
         print("model is fitted")
 
 
@@ -172,10 +172,12 @@ class NaiveBayes(object):
                 positive_prob *= (self.conditionals_p[word_index])**word # "**word" because that is frequency
                 negative_prob *= (self.conditionals_n[word_index])**word # "**word" because that is frequency
 
-            if positive_prob>negative_prob:
-                y_pred.append(0)
-            else:
-                y_pred.append(1)
+            # if positive_prob>negative_prob:
+            #     y_pred.append(1)
+            # else:
+            #     y_pred.append(0)
+            y_pred.append(positive_prob) # probability of 1
+
         y_pred=np.array(y_pred)
         return y_pred
 
@@ -252,25 +254,38 @@ def load_data(return_numpy=False):
 
 def main():
     # Load in data
-    # X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
-    # # Fit the Bag of Words model for Q1.1
-    # bow = BagOfWords(vocabulary_size=10)
-    # bow.fit(X_train[:100])
-    # representation = bow.transform(X_train[10:200])
-    # ret = np.sum(representation, axis=0)
-    # print(ret)
+    print("########## BAG of Words ##########")
+    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
+    # Fit the Bag of Words model for Q1.1
+    bow = BagOfWords(vocabulary_size=10)
+    bow.fit(X_train[:100])
+    representation = bow.transform(X_train[100:200])
+    ret = np.sum(representation, axis=0)
+    print(ret)
 
+
+    print("########## Naive Bayes model N##########")
     # Load in data
     X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
 
     # Fit the Naive Bayes model for Q1.3
-    nb = NaiveBayes(beta=2)
-    nb.fit(X_train, y_train,vocab)
-    y_pred = nb.predict(X_valid)
-    score = roc_auc_score(y_valid, y_pred)
-    print("FINAL ROC AUC SCORE= " + str(score))
+    beta_list = [1,1.2,1.4,1.6]
+    ROC_list = []
+    for beta in beta_list:
+
+        nb = NaiveBayes(beta)
+        nb.fit(X_train, y_train,vocab)
+        y_pred = nb.predict(X_valid)
+        score = roc_auc_score(y_valid, y_pred)
+        ROC_list.append(score)
+        print("FINAL ROC AUC SCORE= " + str(score) + "FOR Beta = " + str(beta))
     # print(confusion_matrix(y_valid, y_pred))
 
+    plt.figure("ROC FOR DIFFERENT VALUES OF D")
+    plt.plot(beta_list, ROC_list)
+    plt.xlabel("Value of beta")
+    plt.ylabel("ROC score")
+    plt.show()
 
 if __name__ == '__main__':
     main()
