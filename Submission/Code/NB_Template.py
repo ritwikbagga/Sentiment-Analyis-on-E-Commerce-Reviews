@@ -114,14 +114,16 @@ class NaiveBayes(object):
         self.n_classes = n_classes
         self.priors = {}
         self.vocab_dic = {}
-        self.conditionals = {} #[word][label]=
+        self.conditionals_p = dict()
+        self.conditionals_n = dict()
 
 
     def fit(self, X_train, y_train, vocab):
         """
 
         """
-        self.vocab_dic= vocab
+        print("Fitting now")
+        self.vocab= vocab
         for index, label in enumerate(y_train):
             if label not in self.priors:
                 self.priors[label]=1
@@ -131,19 +133,24 @@ class NaiveBayes(object):
         for label in np.unique(y_train):
             self.priors[label] = (self.priors[label]+(self.beta-1))/(len(y_train)+(self.beta-1)*len(np.unique(y_train))) #priors are done
 
-
+        print("priors are done")
         #lets build the conditionals
-        #conditionals = {}  # dictionary conditinals[word_index][label] = P(word|label)
-        positive_indices = np.where(y_train == 1)[0]
+
+        positive_indices =  np.where(y_train==1)[0]
         Negative_indices = np.where(y_train == 0)[0]
+
         X_train_positives = X_train[positive_indices] #samples of label positives
         X_train_negatives = X_train[Negative_indices] #sample of label negative
-        X_train_positive_counts = np.sum(X_train_positives,axis=0) #count of word label = pos
+
+        X_train_positive_counts = np.sum(X_train_positives,axis=0 ) #count of word label = pos
+        #print("X_train_positive_counts="+str(X_train_positive_counts))
         X_train_negative_counts = np.sum(X_train_negatives, axis=0) #count of word label =neg
 
         for index_word, value in enumerate(vocab):
-                self.conditionals[index_word][1] = (X_train_positive_counts[index_word] + (self.beta -1))   / np.sum(X_train_positive_counts) + (self.beta-1)*len(np.unique(y_train))
-                self.conditionals[index_word][0] = (X_train_negative_counts[index_word] + (self.beta - 1))  / np.sum(X_train_negative_counts) + (self.beta-1)*len(np.unique(y_train))
+                 self.conditionals_p[index_word] = (X_train_positive_counts[index_word] + (self.beta -1))   / (np.sum(X_train_positive_counts) + (self.beta-1)*len(np.unique(y_train)) )
+                 self.conditionals_n[index_word] = (X_train_negative_counts[index_word] + (self.beta - 1))  / (np.sum(X_train_negative_counts) + (self.beta-1)*len(np.unique(y_train)) )
+        print("model is fitted")
+
 
 
 
@@ -156,32 +163,23 @@ class NaiveBayes(object):
         """
         Predict the X_test with the fitted model
         """
+        print("predicting now")
         y_pred = []
         for x in X_test:
             positive_prob = self.priors[1]
             negative_prob = self.priors[0]
             for word_index, word in enumerate(x):
-                positive_prob *= (self.conditionals[word_index][1])**word # "**word" because that is frequency
-                negative_prob *= (self.conditionals[word_index][0])**word # "**word" because that is frequency
+                positive_prob *= (self.conditionals_p[word_index])**word # "**word" because that is frequency
+                negative_prob *= (self.conditionals_n[word_index])**word # "**word" because that is frequency
 
             if positive_prob>negative_prob:
-                y_pred.append([0])
+                y_pred.append(0)
             else:
-                y_pred.append([1])
-
+                y_pred.append(1)
+        y_pred=np.array(y_pred)
+        print(y_pred)
         return y_pred
 
-
-
-
-
-
-
-
-
-
-
-        pass
 
 
 def confusion_matrix(y_true, y_pred):
@@ -214,7 +212,6 @@ def load_data(return_numpy=False):
     y_train.loc[y_train["Sentiment"] == 'Positive', "Sentiment"] = 1
     y_train.loc[y_train["Sentiment"] == 'Negative', "Sentiment"] = 0
     y_train = np.array(y_train["Sentiment"])
-
     y_valid = pd.read_csv("../../Data/Y_val.csv")
     y_valid.loc[y_valid["Sentiment"] == 'Positive', "Sentiment"] == 1
     y_valid.loc[y_valid["Sentiment"] == 'Negative', "Sentiment"] == 0
@@ -235,19 +232,17 @@ def load_data(return_numpy=False):
     x_valid = np.array(x_valid["Review Text"])
     x_test = pd.read_csv("../../Data/X_test.csv")
     x_test = np.array(x_test["Review Text"])
-    vectorizer.fit(x_train)
-    x_train = vectorizer.transform(x_train)
-    x_train.toarray()
-    vocab = {}
-    v = vectorizer.get_feature_names()
-    for index, value in enumerate(v):
-        vocab[value] = index
-    x_valid = vectorizer.transform(x_valid)
-    x_valid.toarray()
-    x_test = vectorizer.transform(x_test)
-    x_test.toarray()
-    return x_train, y_train, x_valid, y_valid, x_test , vocab
+    x_train = vectorizer.fit_transform(x_train)
+    vocab = vectorizer.get_feature_names()
+    x_train= x_train.toarray()
 
+    x_valid = vectorizer.transform(x_valid)
+    x_valid= x_valid.toarray()
+
+    x_test = vectorizer.transform(x_test)
+    x_test=x_test.toarray()
+
+    return x_train, y_train, x_valid, y_valid, x_test , vocab
 
 
 
@@ -258,21 +253,23 @@ def load_data(return_numpy=False):
 
 def main():
     # Load in data
-    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
-    # Fit the Bag of Words model for Q1.1
-    bow = BagOfWords(vocabulary_size=10)
-    bow.fit(X_train[:100])
-    representation = bow.transform(X_train[10:200])
-    ret = np.sum(representation, axis=0)
-    print(ret)
+    # X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
+    # # Fit the Bag of Words model for Q1.1
+    # bow = BagOfWords(vocabulary_size=10)
+    # bow.fit(X_train[:100])
+    # representation = bow.transform(X_train[10:200])
+    # ret = np.sum(representation, axis=0)
+    # print(ret)
 
     # Load in data
-    # X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
-    #
-    # # Fit the Naive Bayes model for Q1.3
-    # nb = NaiveBayes(beta=1)
-    # nb.fit(X_train, y_train,vocab)
-    # y_pred = nb.predict(X_valid)
+    X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
+
+    # Fit the Naive Bayes model for Q1.3
+    nb = NaiveBayes(beta=2)
+    nb.fit(X_train, y_train,vocab)
+    y_pred = nb.predict(X_valid)
+    score = roc_auc_score(y_valid, y_pred)
+    print("FINAL ROC AUC SCORE= " + str(score))
     # print(confusion_matrix(y_valid, y_pred))
 
 
