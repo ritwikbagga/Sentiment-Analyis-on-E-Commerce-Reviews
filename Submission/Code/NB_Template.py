@@ -147,8 +147,8 @@ class NaiveBayes(object):
         X_train_negative_counts = np.sum(X_train_negatives, axis=0) #count of word label =neg
 
         for index_word, value in enumerate(vocab):
-                 self.conditionals_p[index_word] = (X_train_positive_counts[index_word] + (self.beta -1))   / (np.sum(X_train_positive_counts) + (self.beta-1)*len(np.unique(y_train)) )
-                 self.conditionals_n[index_word] = (X_train_negative_counts[index_word] + (self.beta - 1))  / (np.sum(X_train_negative_counts) + (self.beta-1)*len(np.unique(y_train)) )
+                 self.conditionals_p[index_word] = (X_train_positive_counts[index_word] + (self.beta -1))   / ( np.sum(X_train_positive_counts) + (self.beta-1)*len(np.unique(y_train)) )
+                 self.conditionals_n[index_word] = (X_train_negative_counts[index_word] + (self.beta - 1))  / ( np.sum(X_train_negative_counts) + (self.beta-1)*len(np.unique(y_train)) )
         print("model is fitted")
 
 
@@ -177,7 +177,6 @@ class NaiveBayes(object):
             else:
                 y_pred.append(1)
         y_pred=np.array(y_pred)
-        print(y_pred)
         return y_pred
 
 
