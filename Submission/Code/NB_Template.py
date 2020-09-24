@@ -192,7 +192,32 @@ def confusion_matrix(y_true, y_pred):
     Calculate the confusion matrix of the
         predictions with true labels
     """
-    pass
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
+    confusion_matrix = np.zeros((2,2))
+
+    for i in zip(y_true, y_pred):
+        if i[0]==1:
+            if i[1]==1:
+                tp+=1
+            else:
+                fn+=1
+        else: #y_true=0
+            if i[1]==0:
+                tn+=1
+            else:
+                fp+=1
+    confusion_matrix[0][0] = tn
+    confusion_matrix[0][1] = fp
+    confusion_matrix[1][0] = fn
+    confusion_matrix[1][1] = tp
+    return confusion_matrix
+
+
+
+
 
 
 def load_data(return_numpy=False):
@@ -281,7 +306,7 @@ def main():
     X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
     #
     # # #Fit the Naive Bayes model for Q1.3
-    beta_list = [1.3, 1.4,1.5,1.6,1.7,1.8,1.9,2]
+    beta_list = [1.6]
     ROC_list = []
     for beta in beta_list:
 
@@ -296,13 +321,19 @@ def main():
         print("FINAL ROC AUC SCORE= " + str(R_Score) + " FOR Beta = " + str(beta))
         print("FINAL F1 SCORE= " + str(f1) + " FOR Beta = " + str(beta))
         print("Accuracy= " + str(accuracy) + " FOR Beta = " + str(beta))
-    #print(confusion_matrix(y_valid, y_pred))
+        cm_df = pd.DataFrame(confusion_matrix(y_valid, y_pred))
+        cm_df.columns= ['Predicted Negative', 'Predicted Positive']
+        cm_df = cm_df.rename(index={0:'Actual Negative', 1:'Actual Positive'})
+        print("Confusion Matrix for Beta = "+str(beta))
+        print(cm_df)
 
-    plt.figure("ROC FOR DIFFERENT VALUES OF D")
-    plt.plot(beta_list, ROC_list)
-    plt.xlabel("Value of beta")
-    plt.ylabel("ROC score")
-    plt.show()
+
+
+    # plt.figure("ROC FOR DIFFERENT VALUES OF D")
+    # plt.plot(beta_list, ROC_list)
+    # plt.xlabel("Value of beta")
+    # plt.ylabel("ROC score")
+    # plt.show()
 
 if __name__ == '__main__':
     main()
