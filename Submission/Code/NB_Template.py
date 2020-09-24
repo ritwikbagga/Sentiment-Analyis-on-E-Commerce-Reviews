@@ -213,14 +213,22 @@ def load_data(return_numpy=False):
     y_valid
     X_test
     """
-    y_train = pd.read_csv("../../Data/y_train.csv")
-    y_train.loc[y_train["Sentiment"] == 'Positive', "Sentiment"] = int(1)
-    y_train.loc[y_train["Sentiment"] == 'Negative', "Sentiment"] = int(0)
-    y_train = np.array(y_train["Sentiment"])
+    y_train = pd.read_csv("../../Data/Y_train.csv")
+    y_train = (y_train['Sentiment'] == 'Positive').values.astype(int)
+
+    y_train = np.array(y_train)
+
+
+
     y_valid = pd.read_csv("../../Data/Y_val.csv")
-    y_valid.loc[y_valid["Sentiment"] == 'Positive', "Sentiment"] = int(1)
-    y_valid.loc[y_valid["Sentiment"] == 'Negative', "Sentiment"] = int(0)
-    y_valid = np.array(y_valid["Sentiment"])
+    y_valid = (y_valid['Sentiment'] == 'Positive').values.astype(int)
+    y_valid = np.array(y_valid)
+
+
+
+
+
+
     if not return_numpy:
         x_train = pd.read_csv("../../Data/X_train.csv")
         x_train = np.array(x_train["Review Text"])
@@ -257,47 +265,44 @@ def load_data(return_numpy=False):
 
 
 def main():
-    # Load in data
-    # print("########## BAG of Words ##########")
-    # X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
-    # # Fit the Bag of Words model for Q1.1
-    # bow = BagOfWords(vocabulary_size=10)
-    # bow.fit(X_train[:100])
-    # representation = bow.transform(X_train[100:200])
-    # ret = np.sum(representation, axis=0)
-    # print(ret)
+
+    print("########## BAG of Words ##########")
+    X_train, y_train, X_valid, y_valid, X_test = load_data(return_numpy=False)
+    # Fit the Bag of Words model for Q1.1
+    bow = BagOfWords(vocabulary_size=10)
+    bow.fit(X_train[:100])
+    representation = bow.transform(X_train[100:200])
+    ret = np.sum(representation, axis=0)
+    print(ret)
 
 
     print("########## Naive Bayes model N##########")
     # Load in data
     X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
-
-    # Fit the Naive Bayes model for Q1.3
-    beta_list = [1.2]
+    #
+    # # #Fit the Naive Bayes model for Q1.3
+    beta_list = [1.3, 1.4,1.5,1.6,1.7,1.8,1.9,2]
     ROC_list = []
     for beta in beta_list:
 
         nb = NaiveBayes(beta)
         nb.fit(X_train, y_train,vocab)
-        y_pred, y_prob = nb.predict(X_valid)
-        print(y_prob[:5])
-        print("neeeee")
-        print(y_valid[:5])
-        #
-        # f1 = f1_score(y_valid, y_pred)
-        # accuracy = accuracy_score(y_valid,y_pred)
-        # ROC_AUC_score = roc_auc_score(y_valid, y_prob)
-        # ROC_list.append(ROC_AUC_score)
-        # print("FINAL ROC AUC SCORE= " + str(ROC_AUC_score) + "FOR Beta = " + str(beta))
-        # print("FINAL F1 SCORE= " + str(f1) + "FOR Beta = " + str(beta))
-        # print("Accuracy= " + str(accuracy) + "FOR Beta = " + str(beta))
-    # print(confusion_matrix(y_valid, y_pred))
+        y_pred , y_prob = nb.predict(X_valid)
 
-    # plt.figure("ROC FOR DIFFERENT VALUES OF D")
-    # plt.plot(beta_list, ROC_list)
-    # plt.xlabel("Value of beta")
-    # plt.ylabel("ROC score")
-    # plt.show()
+        f1 = f1_score(y_valid, y_pred)
+        accuracy = accuracy_score(y_valid,y_pred)
+        R_Score = roc_auc_score(y_valid, y_prob)
+        ROC_list.append(R_Score)
+        print("FINAL ROC AUC SCORE= " + str(R_Score) + " FOR Beta = " + str(beta))
+        print("FINAL F1 SCORE= " + str(f1) + " FOR Beta = " + str(beta))
+        print("Accuracy= " + str(accuracy) + " FOR Beta = " + str(beta))
+    #print(confusion_matrix(y_valid, y_pred))
+
+    plt.figure("ROC FOR DIFFERENT VALUES OF D")
+    plt.plot(beta_list, ROC_list)
+    plt.xlabel("Value of beta")
+    plt.ylabel("ROC score")
+    plt.show()
 
 if __name__ == '__main__':
     main()
