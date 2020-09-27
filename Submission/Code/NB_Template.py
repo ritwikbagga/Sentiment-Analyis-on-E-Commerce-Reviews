@@ -8,6 +8,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score , accuracy_score
 from matplotlib import pyplot as plt
 
+
 class BagOfWords(object):
     """
     Class for implementing Bag of Words
@@ -213,7 +214,10 @@ def confusion_matrix(y_true, y_pred):
     confusion_matrix[0][1] = fp
     confusion_matrix[1][0] = fn
     confusion_matrix[1][1] = tp
-    return confusion_matrix
+    cm_df = pd.DataFrame(confusion_matrix)
+    cm_df.columns = ['Predicted Negative', 'Predicted Positive']
+    cm_df = cm_df.rename(index={0: 'Actual Negative', 1: 'Actual Positive'})
+    return cm_df
 
 
 
@@ -303,34 +307,36 @@ def main():
     X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
     #
     # # #Fit the Naive Bayes model for Q1.3
-    beta_list = [1.6]
+    beta_list = [ 1.25, 1.5, 1.6,1.8]
+    test_results=[]
+    # train_results= []
     ROC_list = []
     for beta in beta_list:
-
+        print("########## for Beta = "+ str(beta) + " ###############")
         nb = NaiveBayes(beta)
         nb.fit(X_train, y_train,vocab)
         y_pred , y_prob = nb.predict(X_valid)
-
+        y_pred_train, y_prob_training = nb.predict(X_train) #used for tuning
         f1 = f1_score(y_valid, y_pred)
         accuracy = accuracy_score(y_valid,y_pred)
-        R_Score = roc_auc_score(y_valid, y_prob)
-        ROC_list.append(R_Score)
-        print("FINAL ROC AUC SCORE= " + str(R_Score) + " FOR Beta = " + str(beta))
+        R_Score_test = roc_auc_score(y_valid, y_prob)  #used for tuning
+        ROC_score_train = roc_auc_score(y_train, y_prob_training) #used for tuning
+        test_results.append(R_Score_test) #used for tuning
+        # train_results.append(ROC_score_train) #used for tuning
+        print("FINAL ROC AUC SCORE= " + str(R_Score_test) + " FOR Beta = " + str(beta))
         print("FINAL F1 SCORE= " + str(f1) + " FOR Beta = " + str(beta))
         print("Accuracy= " + str(accuracy) + " FOR Beta = " + str(beta))
-        cm_df = pd.DataFrame(confusion_matrix(y_valid, y_pred))
-        cm_df.columns= ['Predicted Negative', 'Predicted Positive']
-        cm_df = cm_df.rename(index={0:'Actual Negative', 1:'Actual Positive'})
-        print("Confusion Matrix for Beta = "+str(beta))
-        print(cm_df)
+        print(confusion_matrix(y_valid, y_pred))
 
 
+    plt.figure("Hyper-parameter tuning for beta")
+    # line1, = plt.plot(beta_list, train_results, 'b', label ="Train AUC")
+    line2 = plt.plot(beta_list, test_results, 'r', label ="Test AUC")
+    plt.ylabel("AUC SCORE")
+    plt.xlabel("VALUE OF BETA")
+    plt.show() #we can see how how we start to overfit with increasing depth.  we can choose d=6 for our  best model
 
-    # plt.figure("ROC FOR DIFFERENT VALUES OF D")
-    # plt.plot(beta_list, ROC_list)
-    # plt.xlabel("Value of beta")
-    # plt.ylabel("ROC score")
-    # plt.show()
+
 
 if __name__ == '__main__':
     main()

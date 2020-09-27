@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import roc_auc_score
+from matplotlib.legend_handler import HandlerLine2D
 
 def getauc(y_true, probs):
     """
@@ -53,9 +54,9 @@ def conf_mat(y_true, y_pred):
     cm_df = cm_df.rename(index={0: 'Actual Negative', 1: 'Actual Positive'})
     return cm_df
 
-    return confusion_matrix
 
-    
+
+
 class LogisticRegression(object):
   def __init__(self, input_size, reg=0.0, std=1e-4):
     """
@@ -80,7 +81,8 @@ class LogisticRegression(object):
     Returns:
     - sigmoid of each value in x with the same shape as x (N,)
     """
-    sig =  1/(1+np.exp(-x))
+    a = np.exp(-x)
+    sig =  1/(1+a)
     sig[sig >= 0.999999] = 0.999999
     sig[sig <= 0.000001] = 0.000001
     return sig
@@ -112,7 +114,7 @@ class LogisticRegression(object):
 
 
     #TODO: Compute the loss
-    loss = (-1/N)*np.sum(  y*np.log(y_hat) + (1-y)*np.log(1-y_hat))+ self.reg*np.sum(self.reg**2)
+    loss = (-1/N)*np.sum(  y*np.log(y_hat) + (1-y)*np.log(1-y_hat))+ self.reg*np.sum(self.W**2)
     #TODO: Compute gradients
 
     # Calculate dLdW meaning the gradient of loss function according to W 
@@ -174,91 +176,126 @@ def main():
    #x_train= x_train.toarray()
     x_valid = vectorizer.transform(x_valid)
     x_test = vectorizer.transform(x_test)
-    x_test=x_test.toarray()
-    #regularization weight  0 to 0.2
-    #number of interations
-    #learning rate
+    # x_test=x_test.toarray()
 
 
+    train_results_reg = []
+    test_results_reg= []
 
+    train_results_lr = []
+    test_results_lr = []
+
+    train_results_ni = []
+    test_results__ni = []
 
     # ############## For optimizing regularization weight ########
-    # regularization_weights = np.linspace(0,0.05, num=5)
-    # ROC_reg = []
-    # for weight in regularization_weights:
-    #     lr = LogisticRegression(input_size=vocab_size , reg=weight)
-    #     #X, y, learning_rate, num_epochs
-    #     losshis = lr.gradDescent(x_train, y_train, learning_rate=0.5, num_epochs=1000)
-    #     y_pred , y_prob = lr.predict(x_valid)
-    #     auc = getauc(y_valid, y_prob)
-    #     ROC_reg.append(auc)
-    #     print("AUC score for current model is "+str(auc) + " and this is for optimizing reg = "+ str(weight))
-    #
+    regularization_weights = np.linspace(0,0.2, num=10)
+    ROC_reg = []
+    for weight in regularization_weights:
+        lr = LogisticRegression(input_size=vocab_size , reg=weight)
+        #X, y, learning_rate, num_epochs
+        losshis = lr.gradDescent(x_train, y_train, learning_rate=0.5, num_epochs=1000)
+        y_pred , y_prob = lr.predict(x_valid)
+        y_pred_train, y_prob_train = lr.predict(x_train)
+        auc = getauc(y_valid, y_prob)
+        test_results_reg.append(auc)
+        train_results_reg.append(getauc(y_train,y_prob_train))
+        ROC_reg.append(auc)
+        print("AUC score for current model is "+str(auc) + " and this is for optimizing reg = "+ str(weight))
+
     # plt.figure("ROC FOR DIFFERENT VALUES OF regularization_weights ")
     # plt.plot(regularization_weights, ROC_reg)
     # plt.xlabel("Value of regularization_weights")
     # plt.ylabel("ROC score")
     # plt.show()
-    #
-    #
-    #  ############# For optimizing Learning rate ########
-    # learning_rates = np.linspace(10**-4, 10, 7)
-    # ROC_lr = []
-    # for learning_rate in learning_rates:
-    #     lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
-    #     #X, y, learning_rate, num_epochs
-    #     losshis = lr.gradDescent(x_train, y_train, learning_rate=learning_rate, num_epochs=100)
-    #     y_pred , y_prob = lr.predict(x_valid)
-    #     auc = getauc(y_valid, y_prob)
-    #     ROC_lr.append(auc)
-    #     print("AUC score for current model is "+str(auc) + " and this is for optimizing learning rate which is now = "+ str(learning_rate))
+
+
+     ############# For optimizing Learning rate ########
+    learning_rates = np.linspace(10**-4, 10, 7)
+    ROC_lr = []
+    for learning_rate in learning_rates:
+        lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
+        #X, y, learning_rate, num_epochs
+        losshis = lr.gradDescent(x_train, y_train, learning_rate=learning_rate, num_epochs=1000)
+        y_pred , y_prob = lr.predict(x_valid)
+        y_pred_train, y_prob_train = lr.predict(x_train)
+        auc = getauc(y_valid, y_prob)
+        test_results_lr.append(auc)
+        train_results_lr.append(getauc(y_train,y_prob_train))
+        ROC_lr.append(auc)
+        print("AUC score for current model is "+str(auc) + " and this is for optimizing learning rate which is now = "+ str(learning_rate))
     # plt.figure("ROC FOR DIFFERENT VALUES OF Learning rate ")
     # plt.plot(learning_rates, ROC_lr)
     # plt.xlabel("Value of Learning Rate")
     # plt.ylabel("ROC score")
     # plt.show()
-    #
-    #
-    #
-    # # ############## For optimizing no. of iterations rate ########
-    # num_iterations = [100,500,1000,1500]
-    # ROC_ni = []
-    # for epochs in num_iterations:
-    #     lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
-    #     losshis = lr.gradDescent(x_train, y_train, learning_rate=0.77, num_epochs=epochs)
-    #     y_pred , y_prob = lr.predict(x_valid)
-    #     auc = getauc(y_valid, y_prob)
-    #     ROC_ni.append(auc)
-    #     print("AUC score for current model is "+str(auc) + " and this is for optimizing number of iterations which is now = "+ str(epochs))
+
+
+
+    # ############## For optimizing no. of iterations rate ########
+    num_iterations = [10, 100,500,1000, 1200, 1500]
+    ROC_ni = []
+    for epochs in num_iterations:
+        lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
+        losshis = lr.gradDescent(x_train, y_train, learning_rate=0.77, num_epochs=epochs)
+        y_pred , y_prob = lr.predict(x_valid)
+        y_pred_train, y_prob_train = lr.predict(x_train)
+        auc = getauc(y_valid, y_prob)
+        test_results__ni.append(auc)
+        train_results_ni.append(getauc(y_train, y_prob_train))
+        ROC_ni.append(auc)
+        print("AUC score for current model is "+str(auc) + " and this is for optimizing number of iterations which is now = "+ str(epochs))
     # plt.figure("ROC FOR DIFFERENT VALUES OF iterations ")
     # plt.plot(num_iterations, ROC_ni)
     # plt.xlabel("Value of iterations")
     # plt.ylabel("ROC score")
     # plt.show()
-    # best reg = 0.125
-    #best learning rate = 0.8
-    #best number of iterations = 1500
+
 
     ##################### Q1  ################
+    # best reg = 0.125
+    # best learning rate = 0.8
+    # best number of iterations = 1500
+
     lr_2 = LogisticRegression(input_size=vocab_size, reg = 0.0125)
     loss_2 = lr_2.gradDescent(x_train, y_train, learning_rate=0.8, num_epochs=1500  )
     y_pred_train , y_prob_train = lr_2.predict(x_train)
     auc_train = getauc(y_train, y_prob_train)
     y_pred_test , y_prob_test = lr_2.predict(x_valid)
     auc_test = getauc(y_valid, y_prob_test)
-    #("train set auc= " + str(auc_train))
-    print("test set auc" + str(auc_test))
+    print("THIS IS FOR Q1: BEST MODEL IS WITH reg = 0.0125, learning rate = 1.71, epochs= 1000")
+    print("Train-set auc= " + str(auc_train))
+    print("Validation set auc" + str(auc_test))
+    print("THIS IS FOR Q3: CONFUSION MATRIX")
     print(conf_mat(y_valid, y_pred_test)) ###### Q3 ########
 
+    ####### TEST TRAIN AUC FOR REG ##########
+    plt.figure("Hyper-parameter tuning for regularization weights")
+    line1, = plt.plot(regularization_weights, train_results_reg, 'b', label ="Train AUC")
+    line2, = plt.plot(regularization_weights, test_results_reg, 'r', label ="Test AUC")
+    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+    plt.ylabel("AUC score")
+    plt.xlabel("WEIGHTS")
+    plt.show()
 
+    ####### TEST TRAIN AUC FOR Learning Rate ##########
+    plt.figure("Hyper-parameter tuning for Learning Rates")
+    line1, = plt.plot(np.log(learning_rates), train_results_lr, 'b', label="Train AUC")
+    line2, = plt.plot(np.log(learning_rates), test_results_lr, 'r', label="Test AUC")
+    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+    plt.ylabel("AUC SCORE")
+    plt.xlabel("LOG(LEARNING RATES)")
+    plt.show()
 
+    ####### TEST TRAIN AUC FOR NUMBER OF ITERATIONS ##########
+    plt.figure("Hyper-parameter tuning for NUMBER OF ITERATIONS")
+    line1, = plt.plot(num_iterations, train_results_ni, 'b', label ="Train AUC")
+    line2, = plt.plot(num_iterations, test_results__ni, 'r', label ="Test AUC")
+    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+    plt.ylabel("AUC score")
+    plt.xlabel("NUMBER OF ITERATIONS")
+    plt.show()
 
-
-
-
-
-
-    
     #TODO: Preprocess the data, here we will only select Review Text column in both train and validation and use CountVectorizer from sklearn to get bag of word representation of the review texts
     # Careful that you should fit vectorizer only on train data and use the same vectorizer for transforming X_train and X_val 
     
