@@ -48,6 +48,11 @@ def conf_mat(y_true, y_pred):
     confusion_matrix[0][1] = fp
     confusion_matrix[1][0] = fn
     confusion_matrix[1][1] = tp
+    cm_df = pd.DataFrame(confusion_matrix)
+    cm_df.columns = ['Predicted Negative', 'Predicted Positive']
+    cm_df = cm_df.rename(index={0: 'Actual Negative', 1: 'Actual Positive'})
+    return cm_df
+
     return confusion_matrix
 
     
@@ -100,10 +105,10 @@ class LogisticRegression(object):
     reg = self.reg
     
     #TODO: Compute scores
-    print(self.W.shape)
-    print(X.shape)
+
+
     y_hat = self.hx(X) #now we have y_hat of shape (len(X) , ) these are probabilities
-    print(y_hat.shape)
+
 
 
     #TODO: Compute the loss
@@ -117,19 +122,7 @@ class LogisticRegression(object):
     return loss, dLdW
 
   def gradDescent(self,X, y, learning_rate, num_epochs):
-    """
-    We will use Gradient Descent for updating our weights, here we used gradient descent instead of stochastic gradient descent for easier implementation
-    so you will use the whole training set for each update of weights instead of using batches of data.
-    
-    Inputs:
-    - X: A numpy array of shape (N, D) giving training data.
-    - y: A numpy array f shape (N,) giving training labels.
-    - learning_rate: Scalar giving learning rate for optimization.
-    - num_epochs: integer giving the number of epochs to train
-    
-    Returns:
-    - loss_hist: numpy array of size (num_epochs,) giving the loss value over epochs
-    """
+
     N, D = X.shape
     loss_hist = np.zeros(num_epochs)
     for i in range(num_epochs):
@@ -138,7 +131,7 @@ class LogisticRegression(object):
 
       self.W = self.W + learning_rate*dLdW
       # printing loss, you can also print accuracy here after few iterations to see how your model is doing
-      print("Epoch : ", i, " loss : ", loss)
+      #print("Epoch : ", i, " loss : ", loss)
       
     return loss_hist
 
@@ -185,33 +178,82 @@ def main():
     #regularization weight  0 to 0.2
     #number of interations
     #learning rate
-    regularization_weights = [0.002]
-    number_of_interations = [10, 100, 300]
-    learning_rates = [10**-4, 10**-3, 10**-2, 10**-1, 10]
-    ############## For optimizing regularization weight ########
-    for weight in regularization_weights:
-        lr = LogisticRegression(input_size=vocab_size , reg=weight)
-        #X, y, learning_rate, num_epochs
-        losshis = lr.gradDescent(x_train, y_train, learning_rate=0.5, num_epochs=1000)
-        y_pred , y_prob = lr.predict(x_valid)
-        auc = getauc(y_valid, y_prob)
-        print("AUC score for current model is "+str(auc) + " and this is for optimizing reg = "+ str(weight))
-    # ############## For optimizing Learning rate ########
+
+
+
+
+    # ############## For optimizing regularization weight ########
+    # regularization_weights = np.linspace(0,0.05, num=5)
+    # ROC_reg = []
+    # for weight in regularization_weights:
+    #     lr = LogisticRegression(input_size=vocab_size , reg=weight)
+    #     #X, y, learning_rate, num_epochs
+    #     losshis = lr.gradDescent(x_train, y_train, learning_rate=0.5, num_epochs=1000)
+    #     y_pred , y_prob = lr.predict(x_valid)
+    #     auc = getauc(y_valid, y_prob)
+    #     ROC_reg.append(auc)
+    #     print("AUC score for current model is "+str(auc) + " and this is for optimizing reg = "+ str(weight))
+    #
+    # plt.figure("ROC FOR DIFFERENT VALUES OF regularization_weights ")
+    # plt.plot(regularization_weights, ROC_reg)
+    # plt.xlabel("Value of regularization_weights")
+    # plt.ylabel("ROC score")
+    # plt.show()
+    #
+    #
+    #  ############# For optimizing Learning rate ########
+    # learning_rates = np.linspace(10**-4, 10, 7)
+    # ROC_lr = []
     # for learning_rate in learning_rates:
-    #     lr = LogisticRegression(input_size=vocab_size)
+    #     lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
     #     #X, y, learning_rate, num_epochs
     #     losshis = lr.gradDescent(x_train, y_train, learning_rate=learning_rate, num_epochs=100)
     #     y_pred , y_prob = lr.predict(x_valid)
     #     auc = getauc(y_valid, y_prob)
+    #     ROC_lr.append(auc)
     #     print("AUC score for current model is "+str(auc) + " and this is for optimizing learning rate which is now = "+ str(learning_rate))
-    # ############## For optimizing no. of iterations rate ########
-    # for epochs in number_of_interations:
-    #     lr = LogisticRegression(input_size=vocab_size)
-    #     #X, y, learning_rate, num_epochs
-    #     losshis = lr.gradDescent(x_train, y_train, learning_rate=learning_rate, num_epochs=epochs)
+    # plt.figure("ROC FOR DIFFERENT VALUES OF Learning rate ")
+    # plt.plot(learning_rates, ROC_lr)
+    # plt.xlabel("Value of Learning Rate")
+    # plt.ylabel("ROC score")
+    # plt.show()
+    #
+    #
+    #
+    # # ############## For optimizing no. of iterations rate ########
+    # num_iterations = [100,500,1000,1500]
+    # ROC_ni = []
+    # for epochs in num_iterations:
+    #     lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
+    #     losshis = lr.gradDescent(x_train, y_train, learning_rate=0.77, num_epochs=epochs)
     #     y_pred , y_prob = lr.predict(x_valid)
     #     auc = getauc(y_valid, y_prob)
-    #     print("AUC score for current model is "+str(auc) + " and this is for optimizing # of epochs  which is now = "+ str(epochs))
+    #     ROC_ni.append(auc)
+    #     print("AUC score for current model is "+str(auc) + " and this is for optimizing number of iterations which is now = "+ str(epochs))
+    # plt.figure("ROC FOR DIFFERENT VALUES OF iterations ")
+    # plt.plot(num_iterations, ROC_ni)
+    # plt.xlabel("Value of iterations")
+    # plt.ylabel("ROC score")
+    # plt.show()
+    # best reg = 0.125
+    #best learning rate = 0.8
+    #best number of iterations = 1500
+
+    ##################### Q1  ################
+    lr_2 = LogisticRegression(input_size=vocab_size, reg = 0.0125)
+    loss_2 = lr_2.gradDescent(x_train, y_train, learning_rate=0.8, num_epochs=1500  )
+    y_pred_train , y_prob_train = lr_2.predict(x_train)
+    auc_train = getauc(y_train, y_prob_train)
+    y_pred_test , y_prob_test = lr_2.predict(x_valid)
+    auc_test = getauc(y_valid, y_prob_test)
+    #("train set auc= " + str(auc_train))
+    print("test set auc" + str(auc_test))
+    print(conf_mat(y_valid, y_pred_test)) ###### Q3 ########
+
+
+
+
+
 
 
 
