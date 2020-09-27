@@ -242,9 +242,6 @@ def load_data(return_numpy=False):
     y_train = (y_train['Sentiment'] == 'Positive').values.astype(int)
 
     y_train = np.array(y_train)
-
-
-
     y_valid = pd.read_csv("../../Data/Y_val.csv")
     y_valid = (y_valid['Sentiment'] == 'Positive').values.astype(int)
     y_valid = np.array(y_valid)
