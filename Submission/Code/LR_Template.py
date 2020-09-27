@@ -16,6 +16,8 @@ def getauc(y_true, probs):
         - probs: predicted probabilities
     """
     #TODO: return auc using sklearn roc_auc_score
+    scores = roc_auc_score(y_true, probs)
+    return scores
 
 def conf_mat(y_true, y_pred):
     """
@@ -26,6 +28,29 @@ def conf_mat(y_true, y_pred):
         - y_pred: the predicted labels
     """
     #TODO: compute and return confusion matrix
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
+    confusion_matrix = np.zeros((2, 2))
+
+    for i in zip(y_true, y_pred):
+        if i[0] == 1:
+            if i[1] == 1:
+                tp += 1
+            else:
+                fn += 1
+        else:  # y_true=0
+            if i[1] == 0:
+                tn += 1
+            else:
+                fp += 1
+    confusion_matrix[0][0] = tn
+    confusion_matrix[0][1] = fp
+    confusion_matrix[1][0] = fn
+    confusion_matrix[1][1] = tp
+    return confusion_matrix
+
     
 class LogisticRegression(object):
   def __init__(self, input_size, reg=0.0, std=1e-4):
@@ -39,6 +64,7 @@ class LogisticRegression(object):
     """
     self.W = std * np.random.randn(input_size)
     self.reg = reg
+
     
   def sigmoid(self,x):
     """
@@ -51,15 +77,15 @@ class LogisticRegression(object):
     - sigmoid of each value in x with the same shape as x (N,)
     """
     sig =  1/(1+np.exp(-x))
-    sig[sig > 0.999999] = 0.999999
-    sig[sig < 0.000001] = 0.000001
+    sig[sig >= 0.999999] = 0.999999
+    sig[sig <= 0.000001] = 0.000001
     sig = np.array(sig)
     return sig
 
   def hx(self, X_train):
     # shape of x_train = (N,D)
     #shape of w = (D,)
-    z = np.dot(X_train, self.W)
+    z = np.dot(X_train, self.W.T)
     h = self.sigmoid(z)
     h=np.array(h)
     return h
@@ -113,9 +139,7 @@ class LogisticRegression(object):
     for i in range(num_epochs):
       #TODO: implement steps of gradient descent
       loss, dLdW = self.loss(X, y)
-
       self.W = self.W - learning_rate*dLdW
-
       # printing loss, you can also print accuracy here after few iterations to see how your model is doing
       print("Epoch : ", i, " loss : ", loss)
       
@@ -134,9 +158,11 @@ class LogisticRegression(object):
         - y_pred: A numpy array of shape (N,) giving predicted labels for each of the elements of X. You can get this by putting a threshold of 0.5 on probs
     """
     #TODO: get the scores (probabilities) for input data X and calculate the labels (0 and 1 for each input data) and return them
-    
-    
-    return probs, y_pred
+    y_probs = self.hx(X)
+    y_pred  = y_probs
+    y_pred[y_pred>=0.5]=1
+    y_pred[y_pred<0.5]=0
+    return y_probs, y_pred
 
 def main():
     y_train = pd.read_csv("../../Data/Y_train.csv")
@@ -167,8 +193,13 @@ def main():
     number_of_interations = [10]
     learning_rates = [10**-4]
     for weight in regularization_weights:
-        lr = LogisticRegression(vocab_size, weight)
+        lr = LogisticRegression(input_size=vocab_size)
+        #X, y, learning_rate, num_epochs
+        losshis = lr.gradDescent(x_train, y_train, learning_rate=10**-2, num_epochs=100)
         y_pred , y_prob = lr.predict(x_valid)
+        auc = getauc(y_valid, y_prob)
+        print("AUC score for current model is "+str(auc))
+
 
 
 
