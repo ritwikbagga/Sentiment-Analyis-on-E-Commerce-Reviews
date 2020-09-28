@@ -165,7 +165,7 @@ class NaiveBayes(object):
         """
         Predict the X_test with the fitted model
         """
-        print("predicting now")
+        print("predicting now, maky take some time")
         y_pred = []
         y_prob = []
         for x in X_test:
@@ -307,7 +307,7 @@ def main():
     X_train, y_train, X_valid, y_valid, X_test , vocab = load_data(return_numpy=True)
     #
     # # #Fit the Naive Bayes model for Q1.3
-    beta_list = [ 1.25, 1.5, 1.6,1.8]
+    beta_list = [ 1.25, 1.5, 1.6,1.8, 2]
     test_results=[]
     # train_results= []
     ROC_list = []

@@ -114,12 +114,12 @@ class LogisticRegression(object):
 
 
     #TODO: Compute the loss
-    loss = (-1/N)*np.sum(  y*np.log(y_hat) + (1-y)*np.log(1-y_hat))+ self.reg*np.sum(self.W**2)
+    loss = (-1/N)*np.sum(  y*np.log(y_hat) + (1-y)*np.log(1-y_hat))+ (self.reg)*np.sum(self.W**2)
     #TODO: Compute gradients
 
     # Calculate dLdW meaning the gradient of loss function according to W 
     # you can use chain rule here with calculating each step to make your job easier
-    dLdW = -(1/N)*(X.T*( y_hat-y) ) + 2*self.reg*self.W
+    dLdW = (-1/N)*(X.T*( y_hat-y) )
     
     return loss, dLdW
 
@@ -131,7 +131,7 @@ class LogisticRegression(object):
       #TODO: implement steps of gradient descent
       loss, dLdW = self.loss(X, y)
 
-      self.W = self.W + learning_rate*dLdW
+      self.W = self.W + (learning_rate*(dLdW - (2*self.reg*self.W)))
       # printing loss, you can also print accuracy here after few iterations to see how your model is doing
       #print("Epoch : ", i, " loss : ", loss)
       
@@ -151,10 +151,10 @@ class LogisticRegression(object):
     """
     #TODO: get the scores (probabilities) for input data X and calculate the labels (0 and 1 for each input data) and return them
     y_probs = self.hx(X)
-    y_pred  = y_probs
-    y_pred[y_pred>=0.5]=1
-    y_pred[y_pred<0.5]=0
-    return y_probs, y_pred
+    one_indices = np.argwhere(y_probs>0.5).reshape(-1)
+    y_pred = np.zeros((len(y_probs),))
+    y_pred[one_indices]=1
+    return y_pred, y_probs
 
 def main():
     y_train = pd.read_csv("../../Data/Y_train.csv")
@@ -162,7 +162,7 @@ def main():
     #y_train = np.array(y_train)
     y_valid = pd.read_csv("../../Data/Y_val.csv")
     y_valid = (y_valid['Sentiment'] == 'Positive').values.astype(int)
-    y_valid = np.array(y_valid)
+    #y_valid = np.array(y_valid)
     vectorizer = CountVectorizer()
     x_train = pd.read_csv("../../Data/X_train.csv")
     x_train = x_train["Review Text"]
@@ -189,19 +189,19 @@ def main():
     test_results__ni = []
 
     # ############## For optimizing regularization weight ########
-    regularization_weights = np.linspace(0,0.2, num=10)
+    regularization_weights = [0 , 0.02 , 0.05 ,0.07,0.1,0.125,0.15, 0.175, 0.2]
     ROC_reg = []
     for weight in regularization_weights:
         lr = LogisticRegression(input_size=vocab_size , reg=weight)
         #X, y, learning_rate, num_epochs
-        losshis = lr.gradDescent(x_train, y_train, learning_rate=0.5, num_epochs=1000)
+        losshis = lr.gradDescent(x_train, y_train, learning_rate=0.1, num_epochs=1500)
         y_pred , y_prob = lr.predict(x_valid)
         y_pred_train, y_prob_train = lr.predict(x_train)
         auc = getauc(y_valid, y_prob)
         test_results_reg.append(auc)
         train_results_reg.append(getauc(y_train,y_prob_train))
-        ROC_reg.append(auc)
-        print("AUC score for current model is "+str(auc) + " and this is for optimizing reg = "+ str(weight))
+        #ROC_reg.append(auc)
+        print("AUC score for current model is "+str(auc) + " and this is for optimizing reg. curent value  = "+ str(weight))
 
     # plt.figure("ROC FOR DIFFERENT VALUES OF regularization_weights ")
     # plt.plot(regularization_weights, ROC_reg)
@@ -211,12 +211,12 @@ def main():
 
 
      ############# For optimizing Learning rate ########
-    learning_rates = np.linspace(10**-4, 10, 7)
+    learning_rates = [10**-4, 10**-3, 10**-2, 10**-1]
     ROC_lr = []
     for learning_rate in learning_rates:
-        lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
+        lr = LogisticRegression(input_size=vocab_size, reg=0.02)
         #X, y, learning_rate, num_epochs
-        losshis = lr.gradDescent(x_train, y_train, learning_rate=learning_rate, num_epochs=1000)
+        losshis = lr.gradDescent(x_train, y_train, learning_rate=learning_rate, num_epochs=1500)
         y_pred , y_prob = lr.predict(x_valid)
         y_pred_train, y_prob_train = lr.predict(x_train)
         auc = getauc(y_valid, y_prob)
@@ -232,12 +232,12 @@ def main():
 
 
 
-    # ############## For optimizing no. of iterations rate ########
+    # ############## For optimizing no. of iterations ########
     num_iterations = [10, 100,500,1000, 1200, 1500]
     ROC_ni = []
     for epochs in num_iterations:
-        lr = LogisticRegression(input_size=vocab_size, reg=0.0125)
-        losshis = lr.gradDescent(x_train, y_train, learning_rate=0.77, num_epochs=epochs)
+        lr = LogisticRegression(input_size=vocab_size, reg=0.02)
+        losshis = lr.gradDescent(x_train, y_train, learning_rate=0.1, num_epochs=epochs)
         y_pred , y_prob = lr.predict(x_valid)
         y_pred_train, y_prob_train = lr.predict(x_train)
         auc = getauc(y_valid, y_prob)
@@ -258,7 +258,7 @@ def main():
     # best number of iterations = 1500
 
     lr_2 = LogisticRegression(input_size=vocab_size, reg = 0.0125)
-    loss_2 = lr_2.gradDescent(x_train, y_train, learning_rate=0.8, num_epochs=1500  )
+    loss_2 = lr_2.gradDescent(x_train, y_train, learning_rate=0.1, num_epochs=1500  )
     y_pred_train , y_prob_train = lr_2.predict(x_train)
     auc_train = getauc(y_train, y_prob_train)
     y_pred_test , y_prob_test = lr_2.predict(x_valid)
