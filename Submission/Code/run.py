@@ -6,12 +6,13 @@ from Best_model2 import main as best_main
 
 def main():
 
-    # print("######## THIS IS FOR NAIVE BAYES AND BAG OF WORDS ###########")
-    # nb_main()
-    # print("######## THIS IS FOR LOGISTIC REGRESSION REVISTED ###########")
-    # lr_main()
+
+    print("######## THIS IS FOR LOGISTIC REGRESSION REVISTED ###########")
+    lr_main()
     print("######## THIS IS FOR BEST MODEL ###########")
     best_main()
+    print("######## THIS IS FOR NAIVE BAYES AND BAG OF WORDS ###########")
+    nb_main()
 
 
 if __name__ == '__main__':

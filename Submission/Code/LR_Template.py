@@ -189,7 +189,7 @@ def main():
     test_results__ni = []
 
     # ############## For optimizing regularization weight ########
-    regularization_weights = [0 , 0.02 , 0.05 ,0.07,0.1,0.125,0.15, 0.175, 0.2]
+    regularization_weights = [0 , 0.001 , 0.005 ,0.01,0.1,0.125,0.15, 0.175, 0.2]
     ROC_reg = []
     for weight in regularization_weights:
         lr = LogisticRegression(input_size=vocab_size , reg=weight)

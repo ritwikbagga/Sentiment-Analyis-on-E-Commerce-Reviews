@@ -165,7 +165,7 @@ class NaiveBayes(object):
         """
         Predict the X_test with the fitted model
         """
-        print("predicting now, maky take some time")
+        print("predicting now, may take some time")
         y_pred = []
         y_prob = []
         for x in X_test:
